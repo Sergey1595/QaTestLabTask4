@@ -1,0 +1,21 @@
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
+
+<suite name="Products Management" verbose="1" >
+    <test name="Create New Product [Chrome]" >
+        <classes>
+            <class name="myprojects.automation.assignment4.tests.CreateProductTest" />
+            <parameter name="browser" value="chrome"/>
+        </classes>
+    </test>
+
+    <test name="Create New Product [Firefox]" >
+        <classes>
+            <class name="myprojects.automation.assignment4.tests.CreateProductTest" />
+            <parameter name="browser" value="firefox"/>
+        </classes>
+    </test>
+
+
+    <!--Prepare test for firefox and IE browsers-->
+
+</suite>
