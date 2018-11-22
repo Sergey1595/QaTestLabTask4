@@ -86,7 +86,7 @@ public abstract class BaseTest {
     /**
      * Closes driver instance after test class execution.
      */
-    //@AfterClass
+    @AfterClass
     public void tearDown() {
         if (driver != null) {
             driver.quit();
