@@ -1,10 +1,13 @@
 package myprojects.automation.assignment4;
 
 import myprojects.automation.assignment4.utils.logging.EventHandler;
+import org.openqa.selenium.UnexpectedAlertBehaviour;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.ie.InternetExplorerDriver;
+import org.openqa.selenium.ie.InternetExplorerOptions;
+import org.openqa.selenium.remote.CapabilityType;
 import org.openqa.selenium.support.events.EventFiringWebDriver;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
@@ -40,7 +43,14 @@ public abstract class BaseTest {
                 System.setProperty(
                         "webdriver.ie.driver",
                         getResource("/IEDriverServer.exe"));
-                return new InternetExplorerDriver();
+                InternetExplorerOptions options = new InternetExplorerOptions().
+                        requireWindowFocus().
+                        setUnhandledPromptBehaviour(UnexpectedAlertBehaviour.ACCEPT).
+                        enablePersistentHovering().
+                        destructivelyEnsureCleanSession();
+                options.setCapability(InternetExplorerDriver.NATIVE_EVENTS, false);
+                options.setCapability(CapabilityType.ACCEPT_SSL_CERTS, true);
+                return new InternetExplorerDriver(options);
             case "chrome":
             default:
                 System.setProperty(

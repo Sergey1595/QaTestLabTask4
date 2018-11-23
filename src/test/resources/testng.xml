@@ -15,6 +15,12 @@
         </classes>
     </test>
 
+    <test name="Create New Product [internet explorer]" >
+        <classes>
+            <class name="myprojects.automation.assignment4.tests.CreateProductTest" />
+            <parameter name="browser" value="internet explorer"/>
+        </classes>
+    </test>
 
     <!--Prepare test for firefox and IE browsers-->
 
