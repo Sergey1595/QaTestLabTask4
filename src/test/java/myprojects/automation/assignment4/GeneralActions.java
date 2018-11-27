@@ -77,7 +77,7 @@ public class GeneralActions {
         ButtonExit.click();
     }
 
-    public void createProduct(ProductData newProduct) {
+    public void goToPageCreateNewProduct() {
         //find button "Catalog"
         Wait.until(ExpectedConditions.presenceOfElementLocated(By.id("subtab-AdminCatalog")));
         WebElement ButtonCatalog = Driver.findElement(By.id("subtab-AdminCatalog"));
@@ -94,10 +94,19 @@ public class GeneralActions {
             MoveToBtnCategory.moveToElement(ButtonCatalog).pause(Duration.ofSeconds(5)).build().perform();
             Actions PressToBtnProduct = new Actions(Driver);
             PressToBtnProduct.click(ButtonProducts).build().perform();
+            CustomReporter.logAction("Pressed to button product.");
         }//This is for Firefox
         catch (WebDriverException e ){
-            ButtonCatalog.click();
-        }
+            Wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//span[contains(text(), 'Каталог')]/parent::a/parent::li")));
+            WebElement btnCatalog = Driver.findElement(By.xpath("//span[contains(text(), 'Каталог')]/parent::a/parent::li"));
+            Wait.until(ExpectedConditions.elementToBeClickable(btnCatalog));
+            //I do not understand why the error in this place. May be it is a bug of Firefox Web Driver.
+            try{
+                btnCatalog.click();
+            }catch (org.openqa.selenium.StaleElementReferenceException ex){
+            }
+
+            }
 
         //press to button "Add new product"
         WebElement ButtonAddProduct = null;
@@ -107,10 +116,12 @@ public class GeneralActions {
         }catch (TimeoutException ex){
             //this is for IE
             try{
+                ButtonCatalog = Driver.findElement(By.xpath("//span[contains(text(), 'Каталог')]/parent::a/parent::li"));
                 ButtonCatalog.click();
                 Wait.until(ExpectedConditions.presenceOfElementLocated(By.id("page-header-desc-configuration-add")));
                 ButtonAddProduct = Driver.findElement(By.id("page-header-desc-configuration-add"));
             }catch (TimeoutException e){
+                ButtonCatalog = Driver.findElement(By.xpath("//span[contains(text(), 'Каталог')]/parent::a/parent::li"));
                 Js.executeScript("arguments[0].click();", ButtonCatalog);
                 Wait.until(ExpectedConditions.presenceOfElementLocated(By.id("page-header-desc-configuration-add")));
                 ButtonAddProduct = Driver.findElement(By.id("page-header-desc-configuration-add"));
@@ -120,26 +131,36 @@ public class GeneralActions {
         Actions ClickButtonAddProduct = new Actions(Driver);
         ClickButtonAddProduct.moveToElement(ButtonAddProduct).pause(Duration.ofSeconds(5)).click(ButtonAddProduct).build().perform();
 
+    }
+
+    public void fillSpecifOfNewProduct(ProductData product){
         //write name of new product
         Wait.until(ExpectedConditions.presenceOfElementLocated(By.id("form_step1_name_1")));
         WebElement FieldNameOfNewProduct  = Driver.findElement(By.id("form_step1_name_1"));
         Wait.until(ExpectedConditions.visibilityOf(FieldNameOfNewProduct));
-        FieldNameOfNewProduct.sendKeys(newProduct.getName());
+        FieldNameOfNewProduct.sendKeys(product.getName());
 
-        //write quantity of new product
+        //clean field quantity of new product
         Wait.until(ExpectedConditions.presenceOfElementLocated(By.id("form_step1_qty_0_shortcut")));
         WebElement FieldQuantityOfNewProduct  = Driver.findElement(By.id("form_step1_qty_0_shortcut"));
         Wait.until(ExpectedConditions.visibilityOf(FieldQuantityOfNewProduct));
-        String Quantity = "document.getElementById('form_step1_qty_0_shortcut').value=" + newProduct.getQty();
-        Js.executeScript(Quantity);
+        FieldQuantityOfNewProduct.sendKeys(org.openqa.selenium.Keys.BACK_SPACE);
 
-        //write price of new product
+        //write quantity of new product
+        FieldQuantityOfNewProduct.sendKeys(String.valueOf(product.getQty()));
+
+        //clear price of new product
         Wait.until(ExpectedConditions.presenceOfElementLocated(By.id("form_step1_price_shortcut")));
         WebElement FieldpriceOfNewProduct  = Driver.findElement(By.id("form_step1_price_shortcut"));
         Wait.until(ExpectedConditions.visibilityOf(FieldpriceOfNewProduct));
-        String Price = "document.getElementById('form_step1_price_shortcut').value=" + newProduct.getPrice();
-        Js.executeScript(Price);
+        for(int i = 0; i < 8; i++)
+            FieldpriceOfNewProduct.sendKeys(org.openqa.selenium.Keys.BACK_SPACE);
 
+        //write price of new product
+        FieldpriceOfNewProduct.sendKeys(String.valueOf(product.getPrice()));
+    }
+
+    public void activateAndSaveNewProduct(ProductData product){
         //use switch to activate new product
         Wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//div[@class='switch-input ']")));
         WebElement SwitchOnlineNewProduct = Driver.findElement(By.xpath("//div[@class='switch-input ']"));
@@ -149,16 +170,18 @@ public class GeneralActions {
         try{
             Wait.until(ExpectedConditions.and(
                     ExpectedConditions.presenceOfElementLocated(By.xpath("//div[@class='growl-close']")),
-                    ExpectedConditions.elementToBeClickable(By.xpath("//div[@class='growl-close']"))
+                    ExpectedConditions.elementToBeClickable(By.xpath("//div[@class='growl-close']")),
+                    ExpectedConditions.presenceOfElementLocated(By.xpath("//div[@class='growl-message']"))
             ));
-            WebElement ButtonCloseSucsessAlert = Driver.findElement(By.xpath("//div[@class='growl-close']"));
+            String  message = Driver.findElement(By.xpath("//div[@class='growl-message']")).getText();
+            Assert.assertTrue( message.toLowerCase().contains("Настройки обновлены.".toLowerCase()),"New product was`nt activate");
             Actions ClickButtonCloseAlert = new Actions(Driver);
+            WebElement ButtonCloseSucsessAlert = Driver.findElement(By.xpath("//div[@class='growl-close']"));
             ClickButtonCloseAlert.moveToElement(ButtonCloseSucsessAlert).click().build().perform();
             CustomReporter.logAction("New product was activate");
         } catch (TimeoutException e){
-            Assert.assertTrue(false, "New product was`nt activate");
+            Assert.fail( "New product was`nt activate");
         }
-
 
         //press to save new product button
         Wait.until(ExpectedConditions.presenceOfElementLocated(By.id("submit")));
@@ -172,25 +195,26 @@ public class GeneralActions {
                     ExpectedConditions.presenceOfElementLocated(By.xpath("//div[@class='growl-close']")),
                     ExpectedConditions.elementToBeClickable(By.xpath("//div[@class='growl-close']"))
             ));
-            WebElement ButtonCloseSucsessAlert = Driver.findElement(By.xpath("//div[@class='growl-close']"));
+            String  message = Driver.findElement(By.xpath("//div[@class='growl-message']")).getText();
+            Assert.assertTrue( message.toLowerCase().contains("Настройки обновлены.".toLowerCase()),"New product was save");
             Actions ClickButtonCloseAlert = new Actions(Driver);
+            WebElement ButtonCloseSucsessAlert = Driver.findElement(By.xpath("//div[@class='growl-close']"));
             ClickButtonCloseAlert.moveToElement(ButtonCloseSucsessAlert).click().build().perform();
             CustomReporter.logAction("New product was save");
         } catch (TimeoutException e){
             Assert.assertTrue(false, "New product was`nt save");
         }
 
-        CustomReporter.logAction("Product was add. Name of product: " + newProduct.getName() + ". Price: " + newProduct.getPrice() + ". Quantity: " + newProduct.getQty());
+        CustomReporter.logAction("Product was add. Name of product: " + product.getName() + ". Price: " + product.getPrice() + ". Quantity: " + product.getQty());
     }
 
-    public void checkAddedProduct(ProductData Product){
+    public void searchProduct(String Name){
         //find button allProducts
         Wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//a[@class='all-product-link pull-xs-left pull-md-right h4']")));
         WebElement btnAllProducts =  Driver.findElement(By.xpath("//a[@class='all-product-link pull-xs-left pull-md-right h4']"));
         Wait.until(ExpectedConditions.elementToBeClickable(btnAllProducts));
         String PressToBtnAllProducts  = "document.getElementsByClassName('all-product-link pull-xs-left pull-md-right h4')[0].click()";
         Js.executeScript(PressToBtnAllProducts);
-
 
         //search added product on all pages
         exit: for(;true;){
@@ -205,7 +229,7 @@ public class GeneralActions {
             for(int j = 0; j < FoundedProducts.size(); j++){
                 FoundedProducts = Driver.findElements(By.xpath("//h1[@itemprop='name']/a"));
                 CustomReporter.logAction("Found name is " + FoundedProducts.get(j).getText());
-                if(FoundedProducts.get(j).getText().equalsIgnoreCase(Product.getName())){
+                if(FoundedProducts.get(j).getText().equalsIgnoreCase(Name)){
                     FoundedProducts = Driver.findElements(By.xpath("//h1[@itemprop='name']/a"));
                     Wait.until(ExpectedConditions.elementToBeClickable(FoundedProducts.get(j)));
                     Actions moveAndClickOnNameOfProduct = new Actions(Driver);
@@ -236,8 +260,10 @@ public class GeneralActions {
                         ExpectedConditions.not(ExpectedConditions.textToBePresentInElement(Driver.findElement(By.xpath("//div[@class='col-md-6 hidden-sm-down total-products']/p")), "12"))
                 ));
             }
-
         }
+    }
+
+    public void checkSpecOfAddedPrdduct(ProductData Product){
 
         //check name of product
         Wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//span[@id='product-availability']")));
@@ -258,8 +284,9 @@ public class GeneralActions {
 
         //check is quantity not 0
         Wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//span[@id='product-availability']")));
-        WebElement Quantity = Driver.findElement(By.xpath("//span[@id='product-availability']"));
-        Assert.assertNotEquals("Нет в наличии",Quantity.getText().replace("\uE14B", "").substring(1), "Quantity is 0");
+        WebElement quantity = Driver.findElement(By.xpath("//span[@id='product-availability']"));
+        if(!(quantity.getText().equalsIgnoreCase("")))
+            Assert.assertNotEquals("Нет в наличии",quantity.getText().replace("\uE14B", "").substring(1), "Quantity is 0");
 
         //press to button Products detail
         Wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//a[(@class='nav-link') or (@class='nav-link active')]")));
@@ -271,7 +298,7 @@ public class GeneralActions {
         Wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//div[@class='product-quantities']/span")));
         String QuantityOfProduct = Driver.findElement(By.xpath("//div[@class='product-quantities']/span")).getText().replaceAll("[^0-9,]", "");
         CustomReporter.log("Found quantity is " + QuantityOfProduct);
-        Assert.assertEquals(Product.getQty(), QuantityOfProduct, "Quantity didnt match" );
+        Assert.assertEquals(String.valueOf(Product.getQty()), QuantityOfProduct, "Quantity didnt match" );
         CustomReporter.logAction("Quantity of product is: " + QuantityOfProduct);
     }
 

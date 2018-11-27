@@ -3,7 +3,6 @@ package myprojects.automation.assignment4.tests;
 import myprojects.automation.assignment4.BaseTest;
 import myprojects.automation.assignment4.model.ProductData;
 import org.testng.annotations.Test;
-import org.testng.annotations.Parameters;
 
 public class CreateProductTest extends BaseTest {
     ProductData Product = ProductData.generate();
@@ -14,7 +13,11 @@ public class CreateProductTest extends BaseTest {
 
         actions.login(Username, Password);
 
-        actions.createProduct(Product);
+        actions.goToPageCreateNewProduct();
+
+        actions.fillSpecifOfNewProduct(Product);
+
+        actions.activateAndSaveNewProduct(Product);
 
         //actions.logout();
 
@@ -23,7 +26,9 @@ public class CreateProductTest extends BaseTest {
     public void checkAddedProduct(){
         actions.openShopPage();
 
-        actions.checkAddedProduct(Product);
+        actions.searchProduct(Product.getName());
+
+        actions.checkSpecOfAddedPrdduct(Product);
 
     }
 

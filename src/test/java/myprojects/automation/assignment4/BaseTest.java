@@ -50,6 +50,11 @@ public abstract class BaseTest {
                         destructivelyEnsureCleanSession();
                 options.setCapability(InternetExplorerDriver.NATIVE_EVENTS, false);
                 options.setCapability(CapabilityType.ACCEPT_SSL_CERTS, true);
+                options.setCapability("unexpectedAlertBehaviour", "accept");
+                options.setCapability("ignoreProtectedModeSettings", true);
+                options.setCapability("disable-popup-blocking", true);
+                options.setCapability("enablePersistentHover", true);
+                options.setCapability("ignoreZoomSetting", true);
                 return new InternetExplorerDriver(options);
             case "chrome":
             default:
